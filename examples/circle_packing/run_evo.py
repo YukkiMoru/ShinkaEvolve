@@ -54,8 +54,8 @@ db_config = DatabaseConfig(
     archive_size=40,
     # Inspiration parameters
     elite_selection_ratio=0.3,
-    num_archive_inspirations=4,
-    num_top_k_inspirations=2,
+    num_archive_inspirations=1,
+    num_top_k_inspirations=1,
     # Island migration parameters
     migration_interval=10,
     migration_rate=0.1,  # chance to migrate program to random island
@@ -63,41 +63,40 @@ db_config = DatabaseConfig(
     **parent_config,
 )
 
-search_task_sys_msg = """You are an expert mathematician specializing in circle packing problems and computational geometry. 
-*** CRITICAL OUTPUT RULES ***
-1. **Output ONLY the python code.** No explanations, no markdown outside the code block.
-2. The code must be enclosed in ```python and ``` tags.
-3. The function signature MUST remain: `def construct_packing():`
-4. The return statement MUST be exactly: `return centers, radii`
-5. Ensure all imports (numpy, scipy) are explicitly included inside the code block.
+search_task_sys_msg = """Write Python code for circle packing optimization.
+STRICT RULES:
+1. Output ONLY the code block ```python ... ```. NO other text.
+2. Function MUST be `def construct_packing():`.
+3. MUST `return centers, radii`.
+4. Import numpy/scipy inside the function.
+5. MINIMIZE comments and docstrings to save tokens. Keep code concise.
 """
-
 
 evo_config = EvolutionConfig(
     task_sys_msg=search_task_sys_msg,
     patch_types=["diff", "full", "cross"],
-    patch_type_probs=[0.1, 0.8, 0.1],
+    patch_type_probs=[0.1, 0.6, 0.3],
     num_generations=400,
-    max_parallel_jobs=12,
+    max_parallel_jobs=1,
     max_patch_resamples=3,
     max_patch_attempts=3,
     job_type="local",
     language="python",
     llm_models=[
-        "local-rnj-1:8b-http://localhost:11434/v1",
+        "local-rnj-1-q3-http://localhost:11434/v1",
     ],
     llm_kwargs=dict(
         temperatures=[0.0, 0.2, 0.3],
-        reasoning_efforts=["auto", "low", "medium", "high"],
-        max_tokens=8192,
+        reasoning_efforts=["auto", "low", "medium"],
+        max_tokens=4096,
     ),
     meta_rec_interval=10,
-    meta_llm_models=["local-rnj-1:8b-http://localhost:11434/v1"],
-    meta_llm_kwargs=dict(temperatures=[0.0], max_tokens=8192),
+    meta_llm_models=["local-rnj-1-q3-http://localhost:11434/v1"],
+    meta_llm_kwargs=dict(temperatures=[0.0], max_tokens=4096),
     embedding_model="local-nomic-embed-text:latest-http://localhost:11434/v1",
     code_embed_sim_threshold=0.995,
-    novelty_llm_models=["local-rnj-1:8b-http://localhost:11434/v1"],
-    novelty_llm_kwargs=dict(temperatures=[0.0], max_tokens=8192),
+    novelty_llm_models=["local-rnj-1-q3-http://localhost:11434/v1"],
+    novelty_llm_kwargs=dict(temperatures=[0.0], max_tokens=4096),
     llm_dynamic_selection="ucb1",
     llm_dynamic_selection_kwargs=dict(exploration_coef=1.0),
     init_program_path="initial.py",
